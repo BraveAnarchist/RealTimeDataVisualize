@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Price Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        canvas {
+            min-width: 600px;
+            margin: 20px auto;
+            min-height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="myChart"></canvas>
+    <script>
+        let prices = [];
+
+        const fetchData = async () => {
+            try {
+                const response = await fetch('https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=IBM&interval=1min&apikey=demo');
+                const data = await response.json();
+                const timeSeriesData = data['Time Series (1min)'];
+
+                prices = Object.values(timeSeriesData).map(entry => parseFloat(entry['4. close']));
+
+                updateChart();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        const updateChart = () => {
+            const ctx = document.getElementById('myChart').getContext('2d');
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: prices.length }, (_, i) => `Data Point ${i + 1}`),
+                    datasets: [{
+                        label: 'IBM Stock Price (USD)',
+                        data: prices,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    animation: {
+                        duration: 0
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            };
+
+            new Chart(ctx, config);
+        };
+
+        fetchData();
+        setInterval(fetchData, 5000); 
+    </script>
+</body>
+
+</html>
